@@ -159,6 +159,17 @@ if [ $? -eq 0 ]; then
   echo "DATABASE IS READY TO USE!"
   echo "#########################"
   
+  echo "Database init..."
+  for f in /entrypoint-initdb.d/*; do
+      case "$f" in
+          *.sh)  echo "$0: running $f"; . "$f" ;;
+          *.sql) echo "$0: running $f"; echo "@$f ; exit;" | su oracle -c '$ORACLE_HOME/bin/sqlplus -s / as sysdba'  ;;
+          *)     echo "No volume sql script, ignoring $f" ;;
+      esac
+      echo
+  done
+  echo "End init."
+
 else
   echo "#####################################"
   echo "########### E R R O R ###############"
@@ -173,6 +184,9 @@ echo "The following output is now a tail of the alert.log:"
 tail -f ${ORACLE_BASE}/diag/rdbms/*/*/trace/alert*.log &
 childPID=$!
 wait ${childPID}
+
+echo "Oracle started Successfully !"
+echo "success" >> /tmp/healthz
 
 # TODO workaround
 tail -f /dev/null
