@@ -163,12 +163,13 @@ if [ $? -eq 0 ]; then
   for f in /entrypoint-initdb.d/*; do
       case "$f" in
           *.sh)  echo "$0: running $f"; . "$f" ;;
-          *.sql) echo "$0: running $f"; echo "@$f ;" | sqlplus -S SYSTEM/oracle ;;
+          *.sql) echo "$0: running $f"; echo "@$f ; exit;" | su oracle -c '$ORACLE_HOME/bin/sqlplus -s / as sysdba'  ;;
           *)     echo "No volume sql script, ignoring $f" ;;
       esac
       echo
   done
-  echo "End init."  
+  echo "End init."
+
 else
   echo "#####################################"
   echo "########### E R R O R ###############"
